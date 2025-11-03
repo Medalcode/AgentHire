@@ -41,6 +41,7 @@ El sistema se compone de una arquitectura distribuida impulsada por Docker:
 - **Refactorización & Buenas Prácticas:** Eliminación de sobreingeniería centralizando la lógica de extracción con LLM (`_extract_jobs_llm`) en la clase `BaseConnector`.
 - **Dashboard Funcional:** Implementación de peticiones reales al API del Tracker, ordenamiento (sorting) de la tabla y vinculación de botones de acción (Apply).
 - **Testeo Automatizado:** Integración de Pytest con tests iniciales para los modelos de datos, base de datos y clientes LLM/Browser.
+- **Postulación Automatizada:** Implementación de la lógica base de postulación para el conector de **ChileTrabajos** (navegación y envío de formulario).
 
 ## 👨‍💻 Autor
 

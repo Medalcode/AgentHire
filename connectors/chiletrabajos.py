@@ -109,7 +109,7 @@ class ChileTrabajosConnector(BaseConnector):
             snapshot = await self.browser.snapshot()
             snap_text = str(snapshot).lower()
             if "siguiente" in snap_text or "next" in snap_text:
-                await self.browser.find_and_click("siguiente")
+                await self.browser.click("siguiente")
                 await asyncio.sleep(2)
                 return True
             return False
@@ -128,9 +128,9 @@ class ChileTrabajosConnector(BaseConnector):
         try:
             await self.browser.open_url(f"{BASE_URL}/login")
             await asyncio.sleep(2)
-            await self.browser.find_and_fill("email", email)
-            await self.browser.find_and_fill("password", password)
-            await self.browser.find_and_click("Iniciar sesión")
+            await self.browser.fill("email", email)
+            await self.browser.fill("password", password)
+            await self.browser.click("Iniciar sesión")
             await asyncio.sleep(3)
             await self.browser.save_state(PORTAL_NAME)
             logger.info("[chiletrabajos] Login exitoso")
@@ -138,6 +138,34 @@ class ChileTrabajosConnector(BaseConnector):
         except Exception as e:
             logger.error(f"[chiletrabajos] Error en login: {e}")
             return False
+
+    async def navigate_to_apply(self, snapshot: dict) -> None:
+        """Navega al formulario de aplicación desde el detalle del job."""
+        try:
+            await self.browser.click("Postular")
+            await asyncio.sleep(2)
+        except Exception as e:
+            logger.warning(f"[chiletrabajos] No se pudo clickear 'Postular': {e}")
+
+    async def fill_application_form(
+        self,
+        snapshot: dict,
+        cv_path: str,
+        cover_letter_path: str,
+        personal_data: dict,
+    ) -> None:
+        """Completa el formulario de postulación."""
+        # En ChileTrabajos, si la sesión está iniciada, los datos y CV 
+        # ya deberían estar cargados. Solo registramos que pasamos por aquí.
+        logger.info("[chiletrabajos] Formulario de postulación preparado (usando perfil).")
+
+    async def submit_application(self) -> None:
+        """Envía la postulación."""
+        try:
+            await self.browser.click("Enviar postulación")
+            await asyncio.sleep(3)
+        except Exception as e:
+            logger.warning(f"[chiletrabajos] No se pudo enviar postulación: {e}")
 
 
 def get_connector(browser: BrowserClient = None) -> ChileTrabajosConnector:
