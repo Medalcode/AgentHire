@@ -1,0 +1,40 @@
+# =============================================================================
+# AgentHire — agents/core/requirements.txt
+# Shared Python dependencies for all FastAPI agents.
+#
+# Install inside each agent's Docker image via:
+#   COPY ../core/requirements.txt /app/core-requirements.txt
+#   RUN pip install --no-cache-dir -r /app/core-requirements.txt
+# =============================================================================
+
+# Web framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# Async PostgreSQL driver
+asyncpg>=0.30.0
+
+# Async HTTP client (for browser_client.py and external API calls)
+httpx>=0.28.0
+
+# Data validation
+pydantic>=2.10.0
+
+# Environment variable loading
+python-dotenv>=1.0.0
+
+# LLM providers
+openai>=1.57.0
+google-generativeai>=0.8.0
+
+# PDF generation (CV and cover letters)
+weasyprint>=63.0
+
+# Markdown rendering (for cover letters)
+markdown>=3.7
+
+# Retry logic with exponential backoff
+tenacity>=9.0.0
+
+# Structured logging
+loguru>=0.7.0

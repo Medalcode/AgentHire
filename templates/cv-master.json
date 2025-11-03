@@ -1,0 +1,85 @@
+{
+  "personal": {
+    "name": "Tu Nombre Completo",
+    "email": "tu@email.com",
+    "phone": "+56 9 XXXX XXXX",
+    "location": "Santiago, Chile",
+    "linkedin": "linkedin.com/in/tu-perfil",
+    "github": "github.com/tu-usuario",
+    "portfolio": ""
+  },
+  "summary": "Desarrollador de software con X años de experiencia en diseño e implementación de sistemas backend escalables, APIs REST y arquitecturas orientadas a microservicios. Apasionado por la automatización, la inteligencia artificial aplicada y la entrega continua de valor.",
+  "experience": [
+    {
+      "company": "Empresa Ejemplo SA",
+      "role": "Desarrollador Backend Senior",
+      "location": "Santiago, Chile",
+      "period": "2022-01 / Presente",
+      "modality": "Remoto",
+      "bullets": [
+        "Diseñé e implementé APIs REST con Python y FastAPI, mejorando el rendimiento en un 40% respecto a la versión anterior en Flask.",
+        "Lideré la migración de arquitectura monolítica a microservicios en AWS ECS con Docker y Terraform.",
+        "Implementé pipelines de CI/CD con GitHub Actions, reduciendo el tiempo de despliegue de 45 a 8 minutos.",
+        "Mentoreé a un equipo de 3 desarrolladores junior, realizando code reviews semanales y sesiones de pair programming.",
+        "Diseñé el esquema de base de datos PostgreSQL para el módulo de facturación, manejando más de 500.000 registros."
+      ],
+      "technologies": ["Python", "FastAPI", "PostgreSQL", "Docker", "AWS ECS", "Terraform", "GitHub Actions"]
+    },
+    {
+      "company": "Startup Tecnológica Ltda.",
+      "role": "Desarrollador Full Stack",
+      "location": "Santiago, Chile",
+      "period": "2020-03 / 2021-12",
+      "modality": "Presencial",
+      "bullets": [
+        "Desarrollé el frontend de la plataforma SaaS usando React y TypeScript, implementando un design system propio.",
+        "Integré pasarelas de pago (Transbank, MercadoPago) en el backend Node.js/Express.",
+        "Optimicé consultas SQL críticas logrando una reducción del 60% en tiempo de respuesta.",
+        "Participé en el diseño y ejecución de pruebas unitarias e integración con Jest y Pytest."
+      ],
+      "technologies": ["React", "TypeScript", "Node.js", "Express", "PostgreSQL", "Redis", "Jest"]
+    }
+  ],
+  "skills": {
+    "languages": ["Python", "TypeScript", "JavaScript", "SQL", "Bash"],
+    "frameworks": ["FastAPI", "Next.js", "React", "Express", "Flask"],
+    "databases": ["PostgreSQL", "Redis", "MongoDB", "SQLite"],
+    "cloud": ["AWS (ECS, S3, Lambda, RDS)", "GCP (Cloud Run, BigQuery)"],
+    "tools": ["Docker", "Docker Compose", "Git", "n8n", "Terraform", "GitHub Actions", "Linux"],
+    "ai_ml": ["OpenAI API", "Google Gemini API", "LangChain", "Prompt Engineering"],
+    "methodologies": ["Agile/Scrum", "TDD", "REST API Design", "Microservices"]
+  },
+  "education": [
+    {
+      "institution": "Universidad de Chile",
+      "degree": "Ingeniería en Informática",
+      "period": "2015 / 2020",
+      "notes": "Título de Ingeniero Civil en Informática"
+    }
+  ],
+  "projects": [
+    {
+      "name": "AgentHire",
+      "description": "Plataforma de agentes autónomos para búsqueda y postulación automatizada de empleos. Orquesta 7 agentes FastAPI mediante n8n, usa agent-browser para automatización web y PostgreSQL para trazabilidad completa del pipeline.",
+      "url": "github.com/tu-usuario/agenthire",
+      "technologies": ["Python", "FastAPI", "n8n", "agent-browser", "PostgreSQL", "Redis", "Docker", "Next.js"]
+    },
+    {
+      "name": "API de Análisis de Sentimientos",
+      "description": "Microservicio REST para análisis de sentimientos en textos en español usando modelos de HuggingFace y FastAPI. Desplegado en AWS Lambda con contenedor Docker.",
+      "url": "github.com/tu-usuario/sentiment-api",
+      "technologies": ["Python", "FastAPI", "HuggingFace Transformers", "Docker", "AWS Lambda"]
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Developer – Associate",
+      "issuer": "Amazon Web Services",
+      "year": 2023
+    }
+  ],
+  "languages_spoken": [
+    { "language": "Español", "level": "Nativo" },
+    { "language": "Inglés", "level": "B2 – Upper Intermediate" }
+  ]
+}
