@@ -11,6 +11,12 @@ from loguru import logger
 
 from core.db import fetch_one, execute
 from core.browser_client import BrowserClient
+def _get_root_dir() -> Path:
+    p = Path(__file__).resolve()
+    return p.parent.parent if (p.parent.parent / "templates").exists() else p.parent.parent.parent
+
+ROOT_DIR = _get_root_dir()
+
 
 REQUIRE_HUMAN_APPROVAL = os.getenv("REQUIRE_HUMAN_APPROVAL", "true").lower() == "true"
 
@@ -157,7 +163,7 @@ class ApplyService:
     async def _get_personal_data(self) -> dict:
         """Retorna datos personales del candidato (del cv-master.json)."""
         import json
-        cv_path = Path(__file__).parent.parent.parent / "templates" / "cv-master.json"
+        cv_path = ROOT_DIR / "templates" / "cv-master.json"
         if cv_path.exists():
             cv = json.loads(cv_path.read_text())
             return cv.get("personal", {})

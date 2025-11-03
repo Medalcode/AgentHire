@@ -189,6 +189,22 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<{ jobs: Job[]
   return apiFetch('/api/jobs?' + new URLSearchParams(filters as Record<string, string>), fallback);
 }
 
+export async function applyForJob(jobId: string): Promise<boolean> {
+  if (!BASE_URL) {
+    alert("Mock mode: apply triggered.");
+    return true;
+  }
+  try {
+    const res = await fetch(`${BASE_URL}/api/jobs/${jobId}/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchApplications(filters: AppFilters = {}): Promise<{ applications: Application[]; total: number }> {
   const fallback = { applications: MOCK_APPLICATIONS, total: MOCK_APPLICATIONS.length };
   if (!BASE_URL) {

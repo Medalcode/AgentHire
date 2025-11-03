@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { fetchApplications, formatDate, formatRelative } from '@/lib/api';
 import type { Application } from '@/lib/api';
 
@@ -191,7 +191,7 @@ export default function ApplicationsPage() {
                     </tr>
                   )
                   : applications.map(app => (
-                    <>
+                    <React.Fragment key={app.id}>
                       <tr
                         key={app.id}
                         style={{ cursor: 'pointer' }}

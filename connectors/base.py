@@ -105,3 +105,31 @@ class BaseConnector(ABC):
         if any(w in text_lower for w in ["presencial", "oficina", "in-office"]):
             return "presencial"
         return "unknown"
+
+    async def _extract_jobs_llm(self, snapshot: dict, portal_name: str) -> list[dict]:
+        """
+        Extrae datos de ofertas desde el accessibility tree usando LLM.
+        """
+        from core.llm_client import complete_json
+        
+        snap_text = str(snapshot)[:8000]
+        prompt = f"""
+Extrae las ofertas de trabajo del accessibility tree de {portal_name}.
+Retorna JSON array: [{{"title":"","company":"","location":"","url":"","salary_text":""}}]
+Solo con datos reales del árbol. Si no hay datos, retorna [].
+
+Accessibility tree:
+{snap_text}
+"""
+        try:
+            result = await complete_json(prompt=prompt, system="Extrae datos de ofertas de trabajo en JSON.")
+            if isinstance(result, list):
+                return [self._normalize(j) for j in result if j.get("title") or j.get("url")]
+            return []
+        except Exception as e:
+            logger.warning(f"[{portal_name}] LLM error en _extract_jobs_llm: {e}")
+            return []
+            
+    def _normalize(self, raw: dict) -> dict:
+        """Normaliza un job al formato estándar. Debe ser sobreescrito."""
+        raise NotImplementedError

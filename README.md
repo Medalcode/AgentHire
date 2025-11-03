@@ -35,6 +35,13 @@ El sistema se compone de una arquitectura distribuida impulsada por Docker:
    - Dashboard: `http://localhost:3000`
    - n8n: `http://localhost:5679`
 
+## 📈 Mejoras Recientes
+
+- **Resolución de Bugs:** Corrección de inyección de comandos en `agent-browser` y resolución de rutas dinámicas de los agentes.
+- **Refactorización & Buenas Prácticas:** Eliminación de sobreingeniería centralizando la lógica de extracción con LLM (`_extract_jobs_llm`) en la clase `BaseConnector`.
+- **Dashboard Funcional:** Implementación de peticiones reales al API del Tracker, ordenamiento (sorting) de la tabla y vinculación de botones de acción (Apply).
+- **Testeo Automatizado:** Integración de Pytest con tests iniciales para los modelos de datos, base de datos y clientes LLM/Browser.
+
 ## 👨‍💻 Autor
 
 Jonatthan Medalla (jonatthan.medalla@inacapmail.cl)

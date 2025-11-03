@@ -1,19 +1,19 @@
 const express = require('express');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 
 const app = express();
 app.use(express.json());
 
-const executeCommand = (cmd, session) => {
+const executeCommand = (args, session) => {
     return new Promise((resolve, reject) => {
-        let fullCmd = `agent-browser`;
+        let fullArgs = [];
         if (session) {
-            fullCmd += ` --session-name ${session}`;
+            fullArgs.push('--session-name', session);
         }
-        fullCmd += ` ${cmd}`;
-        console.log("Executing:", fullCmd);
+        fullArgs = fullArgs.concat(args);
+        console.log("Executing: agent-browser", fullArgs.join(' '));
         
-        exec(fullCmd, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+        execFile('agent-browser', fullArgs, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
             if (error) {
                 console.error("Error:", error.message);
                 console.error("Stderr:", stderr);
@@ -35,11 +35,11 @@ app.post('/rpc', async (req, res) => {
 
         switch (method) {
             case 'browser.navigate':
-                await executeCommand(`open "${params.url}"`, session);
+                await executeCommand(['open', params.url], session);
                 result = { url: params.url, status: 200 };
                 break;
             case 'browser.snapshot':
-                const out = await executeCommand(`snapshot -j`, session);
+                const out = await executeCommand(['snapshot', '-j'], session);
                 try {
                     // Attempt to extract the JSON output if it's mixed with other logs
                     const jsonMatch = out.match(/(\{.*\})/s);
@@ -49,19 +49,18 @@ app.post('/rpc', async (req, res) => {
                 }
                 break;
             case 'browser.getInnerText':
-                result = { text: await executeCommand(`get text "${params.selector}" -q`, session) };
+                result = { text: await executeCommand(['get', 'text', params.selector, '-q'], session) };
                 break;
             case 'browser.click':
-                await executeCommand(`click "${params.selector}" -q`, session);
+                await executeCommand(['click', params.selector, '-q'], session);
                 result = { clicked: true, selector: params.selector };
                 break;
             case 'browser.fill':
-                const text = params.text.replace(/"/g, '\\"');
-                await executeCommand(`fill "${params.selector}" "${text}" -q`, session);
+                await executeCommand(['fill', params.selector, params.text, '-q'], session);
                 result = { filled: true, selector: params.selector };
                 break;
             case 'browser.screenshot':
-                await executeCommand(`screenshot -q`, session);
+                await executeCommand(['screenshot', '-q'], session);
                 result = { path: "/app/outputs/screenshot.png" };
                 break;
             case 'browser.loadState':

@@ -46,7 +46,7 @@ class ComputrabajoConnector(BaseConnector):
             page = 1
             while len(jobs) < max_results:
                 snapshot = await self.browser.snapshot()
-                page_jobs = await self._extract_jobs_llm(snapshot)
+                page_jobs = await self._extract_jobs_llm(snapshot, PORTAL_NAME)
 
                 if not page_jobs:
                     break
@@ -64,25 +64,6 @@ class ComputrabajoConnector(BaseConnector):
             logger.error(f"[computrabajo] Error: {e}")
 
         return jobs[:max_results]
-
-    async def _extract_jobs_llm(self, snapshot: dict) -> list[dict]:
-        snap_text = str(snapshot)[:8000]
-        prompt = f"""
-Extrae las ofertas de trabajo del accessibility tree de Computrabajo.
-Retorna JSON array: [{{"title":"","company":"","location":"","url":"","salary_text":""}}]
-Solo con datos reales del árbol. Si no hay datos, retorna [].
-
-Accessibility tree:
-{snap_text}
-"""
-        try:
-            result = await complete_json(prompt=prompt, system="Extrae datos de ofertas de trabajo en JSON.")
-            if isinstance(result, list):
-                return [self._normalize(j) for j in result if j.get("title")]
-            return []
-        except Exception as e:
-            logger.warning(f"[computrabajo] LLM error: {e}")
-            return []
 
     def _normalize(self, raw: dict) -> dict:
         salary_min, salary_max = self._parse_salary(raw.get("salary_text", ""))

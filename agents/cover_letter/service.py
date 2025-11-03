@@ -11,9 +11,15 @@ from loguru import logger
 
 from core.db import fetch_one, execute
 from core.llm_client import complete
+def _get_root_dir() -> Path:
+    p = Path(__file__).resolve()
+    return p.parent.parent if (p.parent.parent / "templates").exists() else p.parent.parent.parent
 
-CV_MASTER_PATH = Path(__file__).parent.parent.parent / "templates" / "cv-master.json"
-PROMPT_PATH = Path(__file__).parent.parent.parent / "prompts" / "cover-letter.md"
+ROOT_DIR = _get_root_dir()
+
+
+CV_MASTER_PATH = ROOT_DIR / "templates" / "cv-master.json"
+PROMPT_PATH = ROOT_DIR / "prompts" / "cover-letter.md"
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "/app/outputs"))
 
 

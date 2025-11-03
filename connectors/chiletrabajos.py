@@ -60,7 +60,7 @@ class ChileTrabajosConnector(BaseConnector):
             page_num = 1
             while len(jobs) < max_results:
                 snapshot = await self.browser.snapshot()
-                page_jobs = await self._extract_jobs_from_snapshot(snapshot)
+                page_jobs = await self._extract_jobs_llm(snapshot, PORTAL_NAME)
 
                 if not page_jobs:
                     logger.info(f"[chiletrabajos] No más resultados en página {page_num}")
@@ -85,32 +85,7 @@ class ChileTrabajosConnector(BaseConnector):
         logger.info(f"[chiletrabajos] Total: {len(jobs)} ofertas")
         return jobs[:max_results]
 
-    async def _extract_jobs_from_snapshot(self, snapshot: dict) -> list[dict]:
-        """
-        Extrae datos de ofertas desde el accessibility tree.
-        Usa LLM para interpretar la estructura de la página.
-        """
-        snapshot_text = str(snapshot)[:8000]  # Limitar tamaño
-
-        prompt = f"""
-Extrae todas las ofertas de trabajo del siguiente accessibility tree de ChileTrabajos.cl.
-Para cada oferta retorna un objeto JSON con: title, company, location, url, salary_text.
-Si un campo no está disponible usa null.
-Responde SOLO con un JSON array: [{{"title":"...","company":"...","location":"...","url":"...","salary_text":"..."}}]
-
-Accessibility tree:
-{snapshot_text}
-"""
-        try:
-            raw_jobs = await complete_json(prompt=prompt, system="Extrae datos estructurados del DOM. Responde solo con JSON válido.")
-            if isinstance(raw_jobs, list):
-                return [self._normalize_job(j) for j in raw_jobs if j.get("url")]
-            return []
-        except Exception as e:
-            logger.warning(f"[chiletrabajos] Error extrayendo con LLM: {e}")
-            return []
-
-    def _normalize_job(self, raw: dict) -> dict:
+    def _normalize(self, raw: dict) -> dict:
         """Normaliza un job al formato estándar."""
         salary_min, salary_max = self._parse_salary(raw.get("salary_text", ""))
         return {

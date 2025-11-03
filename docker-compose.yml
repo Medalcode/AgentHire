@@ -28,8 +28,6 @@ volumes:
   postgres_data:
   redis_data:
   n8n_data:
-  browser_sessions:
-  app_outputs:
 
 # ---------------------------------------------------------------------------
 # Common env-file anchor (applied to all Python agents)
@@ -135,7 +133,7 @@ services:
       - "8765:8765"
     volumes:
       # Persist browser session state (cookies, localStorage, auth tokens)
-      - browser_sessions:/app/sessions
+      - ./browser/sessions:/app/sessions
     environment:
       # Pass sessions directory into the container
       BROWSER_SESSIONS_DIR: /app/sessions
@@ -172,7 +170,12 @@ services:
         condition: service_healthy
     volumes:
       # Shared outputs volume for screenshots and downloaded files
-      - app_outputs:/app/outputs
+      - ./outputs:/app/outputs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8001/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
   # -------------------------------------------------------------------------
   # agent-ranking — scores and ranks discovered jobs via LLM
@@ -191,6 +194,11 @@ services:
     volumes:
       - ./templates:/app/templates:ro
       - ./prompts:/app/prompts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8002/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
   # -------------------------------------------------------------------------
   # agent-cv — generates tailored CV PDFs
@@ -209,7 +217,12 @@ services:
     volumes:
       - ./templates:/app/templates:ro
       - ./prompts:/app/prompts:ro
-      - app_outputs:/app/outputs
+      - ./outputs:/app/outputs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8003/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
   # -------------------------------------------------------------------------
   # agent-cover — generates personalised cover letters
@@ -228,7 +241,12 @@ services:
     volumes:
       - ./templates:/app/templates:ro
       - ./prompts:/app/prompts:ro
-      - app_outputs:/app/outputs
+      - ./outputs:/app/outputs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8004/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
   # -------------------------------------------------------------------------
   # agent-apply — submits applications on job portals via agent-browser
@@ -249,7 +267,12 @@ services:
       agent-browser:
         condition: service_healthy
     volumes:
-      - app_outputs:/app/outputs
+      - ./outputs:/app/outputs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8005/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
   # -------------------------------------------------------------------------
   # agent-tracker — monitors application status and records events
@@ -266,7 +289,12 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - app_outputs:/app/outputs
+      - ./outputs:/app/outputs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8006/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
   # -------------------------------------------------------------------------
   # agent-profiles — keeps portal profiles/CVs up-to-date (NOT IMPLEMENTED YET)
@@ -296,6 +324,7 @@ services:
       context: ./dashboard
       dockerfile: Dockerfile
     container_name: agenthire_dashboard
+    env_file: .env
     profiles:
       - dev
     networks:
@@ -304,7 +333,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_TRACKER_URL: http://agent-tracker:8006
+      NEXT_PUBLIC_TRACKER_URL: http://localhost:8006
       # API routes that proxy to agents are server-side, so use container names
       DISCOVERY_URL: http://agent-discovery:8001
       RANKING_URL: http://agent-ranking:8002

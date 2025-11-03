@@ -9,10 +9,16 @@ from loguru import logger
 
 from core.db import fetch_one, fetch_all, execute
 from core.llm_client import complete_json
+def _get_root_dir() -> Path:
+    p = Path(__file__).resolve()
+    return p.parent.parent if (p.parent.parent / "templates").exists() else p.parent.parent.parent
+
+ROOT_DIR = _get_root_dir()
+
 
 
 # Carga el CV maestro una vez al iniciar
-CV_MASTER_PATH = Path(__file__).parent.parent.parent / "templates" / "cv-master.json"
+CV_MASTER_PATH = ROOT_DIR / "templates" / "cv-master.json"
 
 def _load_cv_master() -> dict:
     if CV_MASTER_PATH.exists():
@@ -24,7 +30,7 @@ def _load_cv_master() -> dict:
 CV_MASTER = _load_cv_master()
 
 # Carga el prompt de ranking
-RANKING_PROMPT_PATH = Path(__file__).parent.parent.parent / "prompts" / "ranking.md"
+RANKING_PROMPT_PATH = ROOT_DIR / "prompts" / "ranking.md"
 
 def _load_ranking_prompt() -> str:
     if RANKING_PROMPT_PATH.exists():

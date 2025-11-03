@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { fetchJobs, scoreClass, formatRelative, PORTALS, STATUSES } from '@/lib/api';
+import { fetchJobs, applyForJob, scoreClass, formatRelative, PORTALS, STATUSES } from '@/lib/api';
 import type { Job, JobFilters } from '@/lib/api';
 
 const PAGE_SIZE = 10;
@@ -52,8 +52,11 @@ export default function JobsPage() {
     // Client-side sort (for mock data)
     let sorted = [...res.jobs];
     sorted.sort((a, b) => {
-      const av = a[sortKey] as number | string;
-      const bv = b[sortKey] as number | string;
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (av === bv) return 0;
+      if (av === undefined || av === null) return 1;
+      if (bv === undefined || bv === null) return -1;
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
       return 0;
@@ -73,6 +76,16 @@ export default function JobsPage() {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir('desc'); }
   }
+
+  const handleApply = async (jobId: string) => {
+    const ok = await applyForJob(jobId);
+    if (ok) {
+      alert("Application process started.");
+      void load();
+    } else {
+      alert("Failed to apply for job.");
+    }
+  };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const startRow = (page - 1) * PAGE_SIZE + 1;
@@ -269,7 +282,7 @@ export default function JobsPage() {
                           >
                             View
                           </a>
-                          <button className="btn btn-primary btn-xs" data-tooltip="Apply now">
+                          <button className="btn btn-primary btn-xs" data-tooltip="Apply now" onClick={() => handleApply(job.id)}>
                             Apply
                           </button>
                         </div>
