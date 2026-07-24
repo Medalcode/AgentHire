@@ -11,7 +11,7 @@ from pathlib import Path
 # Add core to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from dotenv import load_dotenv
@@ -22,11 +22,7 @@ from discovery.service import DiscoveryService
 
 load_dotenv()
 
-app = FastAPI(
-    title="AgentHire — Discovery Agent",
-    description="Busca nuevas ofertas de trabajo en portales de empleo",
-    version="1.0.0",
-)
+router = APIRouter()
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,13 +34,10 @@ app.add_middleware(
 discovery_service = DiscoveryService()
 
 
-@app.on_event("startup")
-async def startup():
-    await get_pool()
-    logger.info("Discovery Agent started")
+logger.info("Discovery Agent started")
 
 
-@app.post("/run", response_model=AgentResponse)
+@router.post("/run", response_model=AgentResponse)
 async def run(request: AgentRequest):
     """
     Ejecuta una búsqueda de empleos.
@@ -77,6 +70,6 @@ async def run(request: AgentRequest):
         )
 
 
-@app.get("/health")
+@router.get("/health")
 async def health():
     return {"status": "ok", "agent": "discovery"}

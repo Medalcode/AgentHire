@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import json
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from dotenv import load_dotenv
@@ -20,24 +20,17 @@ from ranking.service import RankingService
 
 load_dotenv()
 
-app = FastAPI(
-    title="AgentHire — Ranking Agent",
-    description="Analiza compatibilidad candidato-oferta con IA",
-    version="1.0.0",
-)
+router = APIRouter()
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 ranking_service = RankingService()
 
 
-@app.on_event("startup")
-async def startup():
-    await get_pool()
-    logger.info("Ranking Agent started")
+logger.info("Ranking Agent started")
 
 
-@app.post("/run", response_model=AgentResponse)
+@router.post("/run", response_model=AgentResponse)
 async def run(request: AgentRequest):
     """
     Analiza la compatibilidad de un job con el perfil del candidato.
@@ -63,7 +56,7 @@ async def run(request: AgentRequest):
         return AgentResponse(status="error", result={}, error=str(e))
 
 
-@app.post("/run/batch", response_model=AgentResponse)
+@router.post("/run/batch", response_model=AgentResponse)
 async def run_batch(request: AgentRequest):
     """
     Rankea múltiples jobs en paralelo.
@@ -86,6 +79,6 @@ async def run_batch(request: AgentRequest):
         return AgentResponse(status="error", result={}, error=str(e))
 
 
-@app.get("/health")
+@router.get("/health")
 async def health():
     return {"status": "ok", "agent": "ranking"}

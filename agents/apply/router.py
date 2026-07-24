@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from dotenv import load_dotenv
@@ -19,24 +19,17 @@ from apply.service import ApplyService
 
 load_dotenv()
 
-app = FastAPI(
-    title="AgentHire — Apply Agent",
-    description="Aplica a ofertas de trabajo usando automatización del navegador",
-    version="1.0.0",
-)
+router = APIRouter()
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 apply_service = ApplyService()
 
 
-@app.on_event("startup")
-async def startup():
-    await get_pool()
-    logger.info("Apply Agent started")
+logger.info("Apply Agent started")
 
 
-@app.post("/run", response_model=AgentResponse)
+@router.post("/run", response_model=AgentResponse)
 async def run(request: AgentRequest):
     """
     Aplica a una oferta de trabajo.
@@ -66,6 +59,6 @@ async def run(request: AgentRequest):
         return AgentResponse(status="error", result={}, error=str(e))
 
 
-@app.get("/health")
+@router.get("/health")
 async def health():
     return {"status": "ok", "agent": "apply"}

@@ -6,32 +6,19 @@
 # Usage:
 #   docker compose up -d                    # start all services (no dashboard)
 #   docker compose --profile dev up -d      # start all services + dashboard
-#   docker compose logs -f agent-discovery  # tail a specific agent
-#
-# Prerequisites:
-#   - Copy .env.example to .env and fill in all values
-#   - Run scripts/setup.sh to initialise the database
+#   docker compose logs -f agent-backend    # tail the backend
 
 version: "3.9"
 
-# ---------------------------------------------------------------------------
-# Shared network — all services communicate on this internal network
-# ---------------------------------------------------------------------------
 networks:
   agenthire_net:
     driver: bridge
 
-# ---------------------------------------------------------------------------
-# Named volumes
-# ---------------------------------------------------------------------------
 volumes:
   postgres_data:
   redis_data:
   n8n_data:
 
-# ---------------------------------------------------------------------------
-# Common env-file anchor (applied to all Python agents)
-# ---------------------------------------------------------------------------
 x-agent-env: &agent-env
   env_file: .env
   networks:
@@ -40,9 +27,6 @@ x-agent-env: &agent-env
 
 services:
 
-  # -------------------------------------------------------------------------
-  # PostgreSQL 16 — primary data store
-  # -------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
     container_name: agenthire_postgres
@@ -52,10 +36,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-agenthire}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Mount migrations so setup.sh can run them inside the container
       - ./database/migrations:/migrations:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agenthire} -d ${POSTGRES_DB:-agenthire}"]
@@ -64,15 +47,12 @@ services:
       retries: 5
       start_period: 15s
 
-  # -------------------------------------------------------------------------
-  # Redis 7 — job queue, session cache, rate-limit counters
-  # -------------------------------------------------------------------------
   redis:
     image: redis:7-alpine
     container_name: agenthire_redis
     <<: *agent-env
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
@@ -83,9 +63,6 @@ services:
       retries: 5
       start_period: 10s
 
-  # -------------------------------------------------------------------------
-  # n8n — workflow orchestrator (triggers agents via HTTP webhooks)
-  # -------------------------------------------------------------------------
   n8n:
     image: n8nio/n8n:latest
     container_name: agenthire_n8n
@@ -98,31 +75,23 @@ services:
       redis:
         condition: service_healthy
     environment:
-      # Database backend for n8n
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: postgres
       DB_POSTGRESDB_PORT: 5432
       DB_POSTGRESDB_DATABASE: ${POSTGRES_DB:-agenthire}
       DB_POSTGRESDB_USER: ${POSTGRES_USER:-agenthire}
       DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      # n8n application settings
       N8N_HOST: ${N8N_HOST:-localhost}
       N8N_PORT: ${N8N_PORT:-5678}
       N8N_PROTOCOL: http
       WEBHOOK_URL: ${N8N_WEBHOOK_URL:-http://localhost:5678}
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-changeme_32_char_key_here_!!!!!}
-      # Timezone
       GENERIC_TIMEZONE: America/Santiago
       TZ: America/Santiago
     volumes:
       - n8n_data:/home/node/.n8n
-      # Mount workflow JSON files for version-controlled workflows
       - ./n8n/workflows:/home/node/.n8n/workflows:ro
 
-  # -------------------------------------------------------------------------
-  # agent-browser — MCP browser automation server
-  # Exposes JSON-RPC 2.0 over HTTP at port 8765
-  # -------------------------------------------------------------------------
   agent-browser:
     build:
       context: ./browser
@@ -132,12 +101,9 @@ services:
     ports:
       - "8765:8765"
     volumes:
-      # Persist browser session state (cookies, localStorage, auth tokens)
       - ./browser/sessions:/app/sessions
     environment:
-      # Pass sessions directory into the container
       BROWSER_SESSIONS_DIR: /app/sessions
-    # Playwright needs these security options in Docker
     cap_add:
       - SYS_ADMIN
     security_opt:
@@ -150,115 +116,14 @@ services:
       retries: 5
       start_period: 30s
 
-  # -------------------------------------------------------------------------
-  # agent-discovery — scrapes job portals and stores raw jobs
-  # -------------------------------------------------------------------------
-  agent-discovery:
+  agent-backend:
     build:
       context: .
-      dockerfile: ./agents/discovery/Dockerfile
-    container_name: agenthire_discovery
+      dockerfile: ./agents/Dockerfile
+    container_name: agenthire_backend
     <<: *agent-env
     ports:
-      - "8001:8001"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      agent-browser:
-        condition: service_healthy
-    volumes:
-      # Shared outputs volume for screenshots and downloaded files
-      - ./outputs:/app/outputs
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8001/health || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-
-  # -------------------------------------------------------------------------
-  # agent-ranking — scores and ranks discovered jobs via LLM
-  # -------------------------------------------------------------------------
-  agent-ranking:
-    build:
-      context: .
-      dockerfile: ./agents/ranking/Dockerfile
-    container_name: agenthire_ranking
-    <<: *agent-env
-    ports:
-      - "8002:8002"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./templates:/app/templates:ro
-      - ./prompts:/app/prompts:ro
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8002/health || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-
-  # -------------------------------------------------------------------------
-  # agent-cv — generates tailored CV PDFs
-  # -------------------------------------------------------------------------
-  agent-cv:
-    build:
-      context: .
-      dockerfile: ./agents/cv_generator/Dockerfile
-    container_name: agenthire_cv
-    <<: *agent-env
-    ports:
-      - "8003:8003"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./templates:/app/templates:ro
-      - ./prompts:/app/prompts:ro
-      - ./outputs:/app/outputs
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8003/health || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-
-  # -------------------------------------------------------------------------
-  # agent-cover — generates personalised cover letters
-  # -------------------------------------------------------------------------
-  agent-cover:
-    build:
-      context: .
-      dockerfile: ./agents/cover_letter/Dockerfile
-    container_name: agenthire_cover
-    <<: *agent-env
-    ports:
-      - "8004:8004"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./templates:/app/templates:ro
-      - ./prompts:/app/prompts:ro
-      - ./outputs:/app/outputs
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8004/health || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-
-  # -------------------------------------------------------------------------
-  # agent-apply — submits applications on job portals via agent-browser
-  # -------------------------------------------------------------------------
-  agent-apply:
-    build:
-      context: .
-      dockerfile: ./agents/apply/Dockerfile
-    container_name: agenthire_apply
-    <<: *agent-env
-    ports:
-      - "8005:8005"
+      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -268,57 +133,14 @@ services:
         condition: service_healthy
     volumes:
       - ./outputs:/app/outputs
+      - ./templates:/app/templates:ro
+      - ./prompts:/app/prompts:ro
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8005/health || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
 
-  # -------------------------------------------------------------------------
-  # agent-tracker — monitors application status and records events
-  # -------------------------------------------------------------------------
-  agent-tracker:
-    build:
-      context: .
-      dockerfile: ./agents/tracker/Dockerfile
-    container_name: agenthire_tracker
-    <<: *agent-env
-    ports:
-      - "8006:8006"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./outputs:/app/outputs
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8006/health || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-
-  # -------------------------------------------------------------------------
-  # agent-profiles — keeps portal profiles/CVs up-to-date (NOT IMPLEMENTED YET)
-  # -------------------------------------------------------------------------
-  #agent-profiles:
-  #  build:
-  #    context: ./agents/profile_updater
-  #    dockerfile: Dockerfile
-  #  container_name: agenthire_profiles
-  #  <<: *agent-env
-  #  ports:
-  #    - "8007:8007"
-  #  depends_on:
-  #    postgres:
-  #      condition: service_healthy
-  #    agent-browser:
-  #      condition: service_healthy
-  #  volumes:
-  #    - ./templates:/app/templates:ro
-  #    - app_outputs:/app/outputs
-
-  # -------------------------------------------------------------------------
-  # dashboard — Next.js UI (only started with --profile dev)
-  # -------------------------------------------------------------------------
   dashboard:
     build:
       context: ./dashboard
@@ -333,15 +155,17 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_TRACKER_URL: http://localhost:8006
-      # API routes that proxy to agents are server-side, so use container names
-      DISCOVERY_URL: http://agent-discovery:8001
-      RANKING_URL: http://agent-ranking:8002
-      CV_URL: http://agent-cv:8003
-      COVER_URL: http://agent-cover:8004
-      APPLY_URL: http://agent-apply:8005
-      TRACKER_URL: http://agent-tracker:8006
-      PROFILES_URL: http://agent-profiles:8007
+      NEXT_PUBLIC_TRACKER_URL: http://localhost:8000/tracker
+      DISCOVERY_URL: http://agent-backend:8000/discovery
+      RANKING_URL: http://agent-backend:8000/ranking
+      CV_URL: http://agent-backend:8000/cv
+      COVER_URL: http://agent-backend:8000/cover
+      APPLY_URL: http://agent-backend:8000/apply
+      TRACKER_URL: http://agent-backend:8000/tracker
     depends_on:
-      - agent-tracker
-      - agent-discovery
+      - agent-backend
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

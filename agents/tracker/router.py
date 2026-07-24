@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from dotenv import load_dotenv
@@ -20,24 +20,17 @@ from core.db import get_pool, fetch_all, fetch_one, execute
 
 load_dotenv()
 
-app = FastAPI(
-    title="AgentHire — Tracker Agent",
-    description="Gestiona historial de postulaciones y provee API para el dashboard",
-    version="1.0.0",
-)
+router = APIRouter()
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
-@app.on_event("startup")
-async def startup():
-    await get_pool()
-    logger.info("Tracker Agent started")
+logger.info("Tracker Agent started")
 
 
 # ─── Dashboard API ────────────────────────────────────────────────────────────
 
-@app.get("/stats")
+@router.get("/stats")
 async def get_stats():
     """Estadísticas generales para el dashboard."""
     total_jobs = await fetch_one("SELECT COUNT(*) as count FROM jobs")
@@ -82,7 +75,7 @@ async def get_stats():
     }
 
 
-@app.get("/jobs")
+@router.get("/jobs")
 async def get_jobs(
     portal: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -144,7 +137,7 @@ async def get_jobs(
     }
 
 
-@app.get("/applications")
+@router.get("/applications")
 async def get_applications(
     status: Optional[str] = Query(None),
     portal: Optional[str] = Query(None),
@@ -236,7 +229,7 @@ async def approve_application(application_id: str):
     return {"success": True, "message": f"Application {application_id} aprobada"}
 
 
-@app.get("/documents")
+@router.get("/documents")
 async def get_documents(
     doc_type: Optional[str] = Query(None, alias="type"),
     page: int = Query(1, ge=1),
@@ -278,7 +271,7 @@ async def get_documents(
     }
 
 
-@app.get("/report/daily")
+@router.get("/report/daily")
 async def daily_report():
     """Reporte diario para n8n."""
     from datetime import datetime, timedelta
@@ -312,6 +305,6 @@ async def daily_report():
     }
 
 
-@app.get("/health")
+@router.get("/health")
 async def health():
     return {"status": "ok", "agent": "tracker"}
