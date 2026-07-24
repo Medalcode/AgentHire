@@ -4,16 +4,16 @@ AgentHire es una plataforma automatizada basada en agentes inteligentes que busc
 
 ## 🚀 Arquitectura
 
-El sistema se compone de una arquitectura distribuida impulsada por Docker:
+El sistema se compone de una arquitectura distribuida impulsada por Docker, estructurada en un "Majestic Monolith" para el backend:
 
 - **n8n:** Orquestador de flujos y tareas programadas (cron jobs) accesible en `http://localhost:5679`.
 - **Dashboard (Next.js):** Interfaz gráfica para revisar el progreso, métricas y ofertas encontradas, accesible en `http://localhost:3000`.
-- **Agentes de Inteligencia Artificial (FastAPI):**
-  - `agent-discovery`: Navega los portales de empleo buscando vacantes.
-  - `agent-ranking`: Evalúa la compatibilidad de cada oferta usando modelos locales.
-  - `agent-cv` & `agent-cover`: Generan documentos personalizados por oferta.
-  - `agent-apply`: Rellena automáticamente los formularios de postulación.
-  - `agent-tracker` & `agent-profiles`: Gestionan el seguimiento y la actualización de perfiles.
+- **Backend Central (`agent-backend`):** Servidor unificado FastAPI (puerto 8000) que expone todos los sub-agentes lógicos como APIRouters:
+  - `/discovery`: Navega los portales de empleo buscando vacantes.
+  - `/ranking`: Evalúa la compatibilidad de cada oferta usando modelos locales.
+  - `/cv` & `/cover`: Generan documentos personalizados por oferta.
+  - `/apply`: Rellena automáticamente los formularios de postulación.
+  - `/tracker` & `/profiles`: Gestionan el seguimiento y la actualización de perfiles.
 - **Agent-Browser:** Servidor interno que traduce comandos de los agentes hacia el navegador web real para la interacción con los portales de empleo.
 - **Base de Datos & Caché:** PostgreSQL y Redis para persistencia y mensajería rápida.
 - **Modelos de IA Locales:** Integración nativa con **Ollama** utilizando el modelo `qwen2.5-coder:7b` para garantizar privacidad y eliminar costos de API.
@@ -37,11 +37,11 @@ El sistema se compone de una arquitectura distribuida impulsada por Docker:
 
 ## 📈 Mejoras Recientes
 
-- **Resolución de Bugs:** Corrección de inyección de comandos en `agent-browser` y resolución de rutas dinámicas de los agentes.
-- **Refactorización & Buenas Prácticas:** Eliminación de sobreingeniería centralizando la lógica de extracción con LLM (`_extract_jobs_llm`) en la clase `BaseConnector`.
-- **Dashboard Funcional:** Implementación de peticiones reales al API del Tracker, ordenamiento (sorting) de la tabla y vinculación de botones de acción (Apply).
-- **Testeo Automatizado:** Integración de Pytest con tests iniciales para los modelos de datos, base de datos y clientes LLM/Browser.
-- **Postulación Automatizada:** Implementación de la lógica base de postulación para el conector de **ChileTrabajos** (navegación y envío de formulario).
+- **CI/CD & DevOps:** Pipeline de GitHub Actions (Lint, Test, Docker Build), `.dockerignore` configurado y adopción de *Conventional Commits*.
+- **Migración a Monolito:** Reducción de 7 contenedores a 1 (`agent-backend`), optimizando drásticamente el consumo de recursos (RAM/CPU) y eliminando deuda técnica.
+- **Estrategia QA:** Refactorización de pruebas eliminando mocks frágiles, integrando *Pure Functions* para parsing de LLMs, y *Smoke/Integration Tests*.
+- **Resolución de Bugs Críticos:** Corrección del parseo de LLMs (soportando Markdown y Arrays), corrección de inyección de comandos en `agent-browser` y resolución de hidratación SVG en Next.js.
+- **Refactorización & Buenas Prácticas:** Centralización de lógica de extracción con LLM (`_extract_jobs_llm`) en la clase `BaseConnector`.
 
 ## 👨‍💻 Autor
 
