@@ -35,6 +35,13 @@ El sistema se compone de una arquitectura distribuida impulsada por Docker, estr
    - Dashboard: `http://localhost:3000`
    - n8n: `http://localhost:5679`
 
+### Configuración de n8n (Orquestación)
+1. Ingresa a `http://localhost:5679` y configura tu cuenta inicial.
+2. En el menú izquierdo, ve a **Workflows** y selecciona **Import from File**.
+3. Importa los flujos `01_discovery_cron.json` y `02_application_pipeline.json` ubicados en la carpeta `n8n/workflows/`.
+4. Configura la credencial de PostgreSQL dentro del flujo `02_Application_Pipeline` (usando las credenciales de tu `.env`).
+5. Activa ambos flujos en la esquina superior derecha ("Active").
+
 ## 📈 Mejoras Recientes
 
 - **CI/CD & DevOps:** Pipeline de GitHub Actions (Lint, Test, Docker Build), `.dockerignore` configurado y adopción de *Conventional Commits*.
