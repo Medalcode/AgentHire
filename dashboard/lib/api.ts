@@ -164,6 +164,14 @@ async function apiFetch<T>(path: string, fallback: T): Promise<T> {
 // Public API Functions
 // =========================================
 
+function cleanParams(obj: Record<string, unknown>): string {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined && v !== null && v !== '') params.set(k, String(v));
+  }
+  return params.toString();
+}
+
 export async function fetchStats(): Promise<Stats> {
   return apiFetch<Stats>('/api/stats', MOCK_STATS);
 }
@@ -186,12 +194,12 @@ export async function fetchJobs(filters: JobFilters = {}): Promise<{ jobs: Job[]
     jobs = jobs.slice((page - 1) * size, page * size);
     return { jobs, total };
   }
-  return apiFetch('/api/jobs?' + new URLSearchParams(filters as Record<string, string>), fallback);
+  return apiFetch('/api/jobs?' + cleanParams(filters as Record<string, unknown>), fallback);
 }
 
 export async function applyForJob(jobId: string): Promise<boolean> {
   if (!BASE_URL) {
-    alert("Mock mode: apply triggered.");
+    console.log("Mock mode: apply triggered.");
     return true;
   }
   try {
@@ -216,7 +224,7 @@ export async function fetchApplications(filters: AppFilters = {}): Promise<{ app
     apps = apps.slice((page - 1) * size, page * size);
     return { applications: apps, total };
   }
-  return apiFetch('/api/applications?' + new URLSearchParams(filters as Record<string, string>), fallback);
+  return apiFetch('/api/applications?' + cleanParams(filters as Record<string, unknown>), fallback);
 }
 
 export async function fetchDocuments(filters: DocFilters = {}): Promise<Document[]> {
@@ -225,7 +233,7 @@ export async function fetchDocuments(filters: DocFilters = {}): Promise<Document
     if (filters.type) docs = docs.filter(d => d.type === filters.type);
     return docs;
   }
-  return apiFetch('/api/documents?' + new URLSearchParams(filters as Record<string, string>), MOCK_DOCUMENTS);
+  return apiFetch('/api/documents?' + cleanParams(filters as Record<string, unknown>), MOCK_DOCUMENTS);
 }
 
 // =========================================
@@ -238,9 +246,10 @@ export function formatDate(iso: string): string {
 }
 
 export function formatRelative(iso: string): string {
-  const now = Date.now();
   const then = new Date(iso).getTime();
-  const diff = now - then;
+  if (isNaN(then)) return 'N/A';
+  const diff = Date.now() - then;
+  if (diff < 0) return 'just now';
   const mins = Math.floor(diff / 60000);
   if (mins < 60)  return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);

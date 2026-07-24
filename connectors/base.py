@@ -84,15 +84,16 @@ class BaseConnector(ABC):
         if not salary_text:
             return None, None
 
-        # Remover puntos de miles y convertir comas
-        cleaned = re.sub(r"[.\s]", "", salary_text.replace(",", "."))
-        numbers = re.findall(r"\d+\.?\d*", cleaned)
+        # Remove thousands separators (dots) and whitespace
+        cleaned = salary_text.replace(".", "").replace(" ", "")
+        # Replace comma decimal separator with dot for float parsing
+        cleaned = cleaned.replace(",", ".")
+        numbers = re.findall(r"\d+", cleaned)
 
         if len(numbers) >= 2:
-            return int(float(numbers[0])), int(float(numbers[1]))
+            return int(numbers[0]), int(numbers[1])
         elif len(numbers) == 1:
-            val = int(float(numbers[0]))
-            return val, val
+            return int(numbers[0]), int(numbers[0])
         return None, None
 
     def _detect_modality(self, text: str) -> str:

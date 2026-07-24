@@ -251,7 +251,7 @@ async def complete_json(
     prompt: str,
     system: str,
     model: Optional[str] = None,
-) -> dict[str, Any]:
+) -> dict[str, Any] | list:
     """
     Send a prompt to the LLM and parse the response as JSON.
 
@@ -281,7 +281,7 @@ async def complete_json(
     return _parse_json_from_llm(raw)
 
 
-def _parse_json_from_llm(raw: str) -> dict[str, Any]:
+def _parse_json_from_llm(raw: str) -> dict[str, Any] | list:
     """
     Attempt to extract and parse JSON from an LLM text response.
 
@@ -310,6 +310,14 @@ def _parse_json_from_llm(raw: str) -> dict[str, Any]:
     if match:
         try:
             return json.loads(match.group())
+        except json.JSONDecodeError:
+            pass
+
+    # Fallback: extract first JSON array
+    match_arr = re.search(r"\[[\s\S]*\]", text)
+    if match_arr:
+        try:
+            return json.loads(match_arr.group())
         except json.JSONDecodeError:
             pass
 

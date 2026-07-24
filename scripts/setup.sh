@@ -118,6 +118,8 @@ DIRS=(
     "n8n/workflows"
     "database/migrations"
     "logs"
+    "templates"
+    "prompts"
 )
 
 for dir in "${DIRS[@]}"; do
@@ -175,7 +177,7 @@ if [ ! -f "${MIGRATION_FILE}" ]; then
 fi
 
 # The migration file is mounted into the container at /migrations/
-$COMPOSE_CMD exec -T postgres \
+$COMPOSE_CMD exec -T -e PGPASSWORD="${POSTGRES_PASSWORD}" postgres \
     psql \
     --username="${POSTGRES_USER}" \
     --dbname="${POSTGRES_DB}" \
@@ -216,5 +218,5 @@ echo "  http://localhost:8003/health  (cv-generator)"
 echo "  http://localhost:8004/health  (cover-letter)"
 echo "  http://localhost:8005/health  (apply)"
 echo "  http://localhost:8006/health  (tracker)"
-echo "  http://localhost:8007/health  (profile-updater)"
+
 echo ""

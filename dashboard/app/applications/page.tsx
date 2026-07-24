@@ -6,7 +6,6 @@ import type { Application } from '@/lib/api';
 
 const PAGE_SIZE = 10;
 
-const STATUS_STEPS: Array<Application['status']> = ['applied', 'pending', 'interview', 'offer'];
 
 function StatusTimeline({ current }: { current: Application['status'] }) {
   const steps = ['Applied', 'Reviewing', 'Interview', 'Offer'];
@@ -99,16 +98,16 @@ export default function ApplicationsPage() {
         {/* Mini stats bar */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
           {[
-            { label: 'Applied', count: total, color: 'var(--accent-hover)', bg: 'var(--accent-subtle)', border: 'var(--border-accent)' },
-            { label: 'Interviews', count: statusCounts.interview + (applications.filter(a=>a.status==='interview').length === 0 ? 4 : 0), color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'rgba(245,158,11,0.2)' },
-            { label: 'Offers', count: statusCounts.offer + (applications.filter(a=>a.status==='offer').length === 0 ? 1 : 0), color: 'var(--success)', bg: 'var(--success-bg)', border: 'rgba(16,185,129,0.2)' },
-            { label: 'Rejected', count: statusCounts.rejected + (applications.filter(a=>a.status==='rejected').length === 0 ? 1 : 0), color: 'var(--danger)', bg: 'var(--danger-bg)', border: 'rgba(239,68,68,0.2)' },
+            { label: 'Applied', filterValue: 'applied', count: total, color: 'var(--accent-hover)', bg: 'var(--accent-subtle)', border: 'var(--border-accent)' },
+            { label: 'Interviews', filterValue: 'interview', count: statusCounts.interview, color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'rgba(245,158,11,0.2)' },
+            { label: 'Offers', filterValue: 'offer', count: statusCounts.offer, color: 'var(--success)', bg: 'var(--success-bg)', border: 'rgba(16,185,129,0.2)' },
+            { label: 'Rejected', filterValue: 'rejected', count: statusCounts.rejected, color: 'var(--danger)', bg: 'var(--danger-bg)', border: 'rgba(239,68,68,0.2)' },
           ].map(s => (
             <div
               key={s.label}
               className="glass-card animate-in"
               style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 140px', cursor: 'pointer' }}
-              onClick={() => setStatusFilter(statusFilter === s.label.toLowerCase() ? '' : s.label.toLowerCase())}
+              onClick={() => setStatusFilter(statusFilter === s.filterValue ? '' : s.filterValue)}
             >
               <span style={{
                 fontSize: '1.4rem', fontWeight: 800,

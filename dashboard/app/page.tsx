@@ -67,6 +67,7 @@ function DonutChart({ data }: { data: { label: string; value: number; color: str
 // Mini Sparkline (SVG)
 // =========================================
 function Sparkline({ values, color }: { values: number[]; color: string }) {
+  if (!values || values.length === 0) return null;
   const w = 80, h = 28;
   const max = Math.max(...values);
   const min = Math.min(...values);
@@ -251,10 +252,8 @@ export default async function OverviewPage() {
                 <Sparkline values={card.spark} color={card.color}/>
               </div>
               {/* Big background icon */}
-              <div className="stat-card-bg-icon">
-                <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={{ color: card.color }}>
-                  {card.icon}
-                </svg>
+              <div className="stat-card-bg-icon" style={{ color: card.color }}>
+                {card.icon}
               </div>
             </div>
           ))}
