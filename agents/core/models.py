@@ -16,7 +16,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional, TypedDict
+from typing import Any, Optional
+from typing_extensions import TypedDict
 
 
 # =============================================================================
@@ -247,32 +248,37 @@ class ApplicationEvent:
 # These are the JSON payloads exchanged between agents and n8n webhooks.
 # =============================================================================
 
-class AgentRequest(TypedDict):
+import json
+from pydantic import BaseModel, model_validator
+
+class AgentRequest(BaseModel):
     """
     Standard request body accepted by every AgentHire FastAPI agent.
-
-    task    -- a short identifier for the operation to perform,
-               e.g. "discover", "rank_job", "generate_cv".
-    context -- arbitrary key/value pairs providing task-specific inputs,
-               e.g. { "job_id": "...", "portal": "linkedin" }.
     """
     task: str
     context: dict[str, Any]
 
+    @model_validator(mode='before')
+    @classmethod
+    def parse_context_string(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            ctx = data.get("context")
+            if isinstance(ctx, str):
+                try:
+                    data["context"] = json.loads(ctx)
+                except json.JSONDecodeError:
+                    pass
+        return data
 
-class AgentResponse(TypedDict):
+
+class AgentResponse(BaseModel):
     """
     Standard response envelope returned by every AgentHire FastAPI agent.
-
-    status    -- "success" | "error" | "pending"
-    result    -- task-specific output payload
-    artifacts -- absolute paths to any files produced (PDFs, screenshots, etc.)
-    error     -- human-readable error message; None on success
     """
     status: str
-    result: dict[str, Any]
-    artifacts: list[str]
-    error: Optional[str]
+    result: dict[str, Any] = {}
+    artifacts: list[str] = []
+    error: Optional[str] = None
 
 
 # =============================================================================

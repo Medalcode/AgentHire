@@ -8,12 +8,12 @@ RUN apt-get update && apt-get install -y \
     libpangoft2-1.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY core/requirements.txt /app/requirements.txt
+COPY agents/core/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy all agents code
-COPY . /app/agents
+COPY agents /app/agents
 
-# Run from the parent of agents/ so it can import core
-WORKDIR /app
-CMD ["uvicorn", "agents.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run from inside agents/ so it can import core, discovery, etc.
+WORKDIR /app/agents
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

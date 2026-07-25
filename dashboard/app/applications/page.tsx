@@ -293,7 +293,7 @@ export default function ApplicationsPage() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   ))
               }
             </tbody>

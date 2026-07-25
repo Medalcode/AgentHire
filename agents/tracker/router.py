@@ -22,7 +22,6 @@ load_dotenv()
 
 router = APIRouter()
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
 logger.info("Tracker Agent started")
@@ -189,7 +188,7 @@ async def get_applications(
     }
 
 
-@app.patch("/applications/{application_id}/status")
+@router.patch("/applications/{application_id}/status")
 async def update_application_status(application_id: str, body: dict):
     """Actualiza el status de una postulación (para actualizaciones manuales)."""
     new_status = body.get("status")
@@ -219,7 +218,7 @@ async def update_application_status(application_id: str, body: dict):
     return {"success": True}
 
 
-@app.patch("/applications/{application_id}/approve")
+@router.patch("/applications/{application_id}/approve")
 async def approve_application(application_id: str):
     """Aprueba manualmente una postulación (signal para el apply-agent)."""
     await execute(

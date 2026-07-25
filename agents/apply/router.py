@@ -21,7 +21,6 @@ load_dotenv()
 
 router = APIRouter()
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 apply_service = ApplyService()
 

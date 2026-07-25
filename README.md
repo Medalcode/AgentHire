@@ -49,6 +49,8 @@ El sistema se compone de una arquitectura distribuida impulsada por Docker, estr
 - **Estrategia QA:** Refactorización de pruebas eliminando mocks frágiles, integrando *Pure Functions* para parsing de LLMs, y *Smoke/Integration Tests*.
 - **Resolución de Bugs Críticos:** Corrección del parseo de LLMs (soportando Markdown y Arrays), corrección de inyección de comandos en `agent-browser` y resolución de hidratación SVG en Next.js.
 - **Refactorización & Buenas Prácticas:** Centralización de lógica de extracción con LLM (`_extract_jobs_llm`) en la clase `BaseConnector`.
+- **Compatibilidad FastAPI & n8n:** Migración de `TypedDict` a `pydantic.BaseModel` con `model_validator` personalizado para procesar payloads JSON stringificados desde n8n.
+- **Estabilidad de Contenedores:** Resolución de rutas de importación en `Dockerfile` (`WORKDIR`), corrección de middlewares en routers de FastAPI, y sincronización de contraseñas de PostgreSQL.
 
 ## 👨‍💻 Autor
 
