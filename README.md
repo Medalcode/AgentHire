@@ -52,6 +52,14 @@ El sistema se compone de una arquitectura distribuida impulsada por Docker, estr
 - **Compatibilidad FastAPI & n8n:** Migración de `TypedDict` a `pydantic.BaseModel` con `model_validator` personalizado para procesar payloads JSON stringificados desde n8n.
 - **Estabilidad de Contenedores:** Resolución de rutas de importación en `Dockerfile` (`WORKDIR`), corrección de middlewares en routers de FastAPI, y sincronización de contraseñas de PostgreSQL.
 
+## 🧭 SDD Reorientation (Fase de Diseño)
+
+Actualmente el proyecto se encuentra en una fase de rediseño arquitectónico impulsada por **SDD (Specification-Driven Development)**:
+- **Candidate Knowledge Base**: Migración de `cv-master.json` hacia un esquema relacional estructurado (`002_candidate_kb.sql`) con modelo de **Evidencias**.
+- **Job Intelligence**: Formalización de un modelo de abstracción para transformar descripciones en crudo en un conjunto de `JobRequirement`s estructurados.
+- **Matching Determinista**: Eliminación de alucinaciones del LLM mediante el cruce de `JobRequirement`s contra las Evidencias del candidato utilizando SQL y lógica predecible, manteniendo al LLM confinado únicamente a tareas de refinamiento de presentación.
+
+
 ## 👨‍💻 Autor
 
 Jonatthan Medalla (jonatthan.medalla@inacapmail.cl)
